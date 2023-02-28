@@ -1,15 +1,21 @@
-Early Course Evaluation - STA 631
-================
+---
+title: "Early Course Evaluation - STA 631"
+output: github_document
+---
 
 ## Preparing R
 
-``` r
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r load-packages}
 library(tidyverse)
 library(tidytext)
 library(ggwordcloud)
 ```
 
-``` r
+```{r load-data}
 # You wont be able to run this as you do not have access on my GDrive
 # However, the string here is from the Google Sheet's url - between the "/d/" and "/edit..."
 sta631_evals <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1VAZseTE8RbrSJm2RLzIpXsDIz9n0htk2GdrQYVyYRu0/edit?resourcekey#gid=2116044512")
@@ -39,11 +45,11 @@ likert_info <- tibble(
 )
 ```
 
-This report was generated with **20 responses**.
+This report was generated with **`r nrow(sta631_evals)` responses**.
 
 ## Your Engagement
 
-``` r
+```{r effort}
 # Rel freq table by effort response
 effort_summary <- sta631_evals %>% 
   select(starts_with("I have completed")) %>% 
@@ -79,9 +85,7 @@ effort %>%
         legend.text = element_text(size = 8))
 ```
 
-![](README_files/figure-gfm/effort-1.png)<!-- -->
-
-``` r
+```{r sought-help}
 # Rel freq table by effort response
 help_summary <- sta631_evals %>% 
   select(starts_with("I have sought")) %>% 
@@ -117,11 +121,10 @@ help %>%
         legend.text = element_text(size = 8))
 ```
 
-![](README_files/figure-gfm/sought-help-1.png)<!-- -->
 
 ## General STA 631 Items
 
-``` r
+```{r course-items}
 course_summary <- sta631_evals %>% 
   select(contains("Learning Objectives")) %>% 
   mutate(across(everything(), ~factor(., level = likert_scale))) %>% 
@@ -162,9 +165,8 @@ ggplot() +
         legend.text = element_text(size = 8))
 ```
 
-![](README_files/figure-gfm/course-items-1.png)<!-- -->
 
-``` r
+```{r tools-items}
 tools_summary <- sta631_evals %>% 
   select(contains("STA 631 course tools")) %>% 
   mutate(across(everything(), ~factor(., level = likert_scale))) %>% 
@@ -205,9 +207,7 @@ ggplot() +
         legend.text = element_text(size = 8))
 ```
 
-![](README_files/figure-gfm/tools-items-1.png)<!-- -->
-
-``` r
+```{r instructor}
 instructor_summary <- sta631_evals %>% 
   select(contains("Instructor")) %>% 
   mutate(across(everything(), ~factor(., level = likert_scale))) %>% 
@@ -248,13 +248,11 @@ ggplot() +
         legend.text = element_text(size = 8))
 ```
 
-![](README_files/figure-gfm/instructor-1.png)<!-- -->
-
 ## Free response
 
 ### What has been the best aspect of this course so far?
 
-``` r
+```{r best-data}
 best <- sta631_evals %>% 
   select(best = starts_with("What as")) %>% 
   mutate(individual = row_number()) %>% 
@@ -280,7 +278,7 @@ best_cleaned <- best_filtered %>%
 best_cleaned <- bind_rows(best_sing, best_cleaned)
 ```
 
-``` r
+```{r best-plot, eval=TRUE, fig.height=6}
 best_cleaned %>%
   count(bigram, sort = TRUE) %>%
   filter(n > 1) %>% 
@@ -290,11 +288,9 @@ best_cleaned %>%
   theme_bw()
 ```
 
-![](README_files/figure-gfm/best-plot-1.png)<!-- -->
-
 ### If there was one thing about this course that you would change?
 
-``` r
+```{r change-data, eval=TRUE, message = FALSE}
 change <- sta631_evals %>% 
   select(change = starts_with("If there")) %>% 
   mutate(individual = row_number()) %>% 
@@ -320,7 +316,7 @@ change_cleaned <- change_filtered %>%
 change_cleaned <- bind_rows(change_sing, change_cleaned)
 ```
 
-``` r
+```{r change-plot}
 change_cleaned %>%
   count(bigram, sort = TRUE) %>%
   filter(n > 1) %>% 
@@ -330,11 +326,9 @@ change_cleaned %>%
   theme_bw()
 ```
 
-![](README_files/figure-gfm/change-plot-1.png)<!-- -->
-
 ### What is one thing that you can do differently to improve your learning?
 
-``` r
+```{r improve-data}
 improve <- sta631_evals %>% 
   select(differently = starts_with("What is")) %>% 
   mutate(individual = row_number()) %>% 
@@ -359,7 +353,7 @@ improve_cleaned <- improve_filtered %>%
 improve_cleaned <- bind_rows(improve_sing, improve_cleaned)
 ```
 
-``` r
+```{r improve-plot, fig.height=6}
 improve_cleaned %>%
   count(bigram, sort = TRUE) %>%
   filter(n > 1) %>% 
@@ -368,5 +362,3 @@ improve_cleaned %>%
   scale_size_area(max_size = 10) +
   theme_bw()
 ```
-
-![](README_files/figure-gfm/improve-plot-1.png)<!-- -->
