@@ -18,7 +18,7 @@ library(ggwordcloud)
 ```{r load-data}
 # You wont be able to run this as you do not have access on my GDrive
 # However, the string here is from the Google Sheet's url - between the "/d/" and "/edit..."
-sta631_evals <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1VAZseTE8RbrSJm2RLzIpXsDIz9n0htk2GdrQYVyYRu0/edit?resourcekey#gid=2116044512")
+sta631_evals <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1_hvgvVPWbjrVDrOPPlb1U6ZDDxyw2iVUrS5FHxmGrOY/edit#gid=1940158762")
 
 # Create scales and color palettes
 effort_scale <- c("I have not attempted", "Less than 50%", "More than 50%, but not everything", "Essentially 100%")
