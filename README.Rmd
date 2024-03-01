@@ -18,7 +18,7 @@ library(ggwordcloud)
 ```{r load-data}
 # You wont be able to run this as you do not have access on my GDrive
 # However, the string here is from the Google Sheet's url - between the "/d/" and "/edit..."
-sta631_evals <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1_hvgvVPWbjrVDrOPPlb1U6ZDDxyw2iVUrS5FHxmGrOY/edit#gid=1940158762")
+sta631_evals <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1tNzCYJLHRVUsadfUBO3YDz_n8zxIzv87G7_Ml92Knzg/edit?resourcekey#gid=1815260115")
 
 # Create scales and color palettes
 effort_scale <- c("I have not attempted", "Less than 50%", "More than 50%, but not everything", "Essentially 100%")
@@ -46,6 +46,22 @@ likert_info <- tibble(
 ```
 
 This report was generated with **`r nrow(sta631_evals)` responses**.
+
+```{r sections}
+# Bar chart of sections
+sta631_evals %>% 
+  group_by(`What section are you in?`) %>% 
+  summarise(n = n()) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  ggplot() +
+  geom_col(aes(y = `What section are you in?`,
+               x = perc)) +
+  theme_bw() +
+  scale_x_continuous(labels = scales::label_percent()) +
+  labs(title = "What section are you in?",
+       y = "",
+       x = "Percent")
+```
 
 ## Your Engagement
 
@@ -132,37 +148,34 @@ course_summary <- sta631_evals %>%
                names_pattern = ".* \\[(.*)\\]") %>% 
   group_by(item, response) %>% 
   summarise(freq = n()) %>% 
-  mutate(perc = round(freq / sum(freq) * 100, 1))
+  mutate(perc = freq / sum(freq))
 
 course <- course_summary %>% 
   select(-freq) %>% 
   left_join(likert_info, by = c("response" = "scale"))
 
-course_agree <- course %>% 
-  filter(str_detect(response, " agree"))
-
-course_disagree <- course %>% 
-  filter(!str_detect(response, " agree"))
-
-ggplot() +
-  # Notice that I am plotting two different datasets, the "agree" dataset:
-  geom_bar(data = course_agree,
-           aes(y = str_wrap(item, width = 40), x = perc, fill = color),
-           position = "stack", stat = "identity") +
-  # And the "disagree" dataset:
-  geom_bar(data = course_disagree,
-           aes(y = str_wrap(item, width = 40), x = -perc, fill = color),
-           position = "stack", stat = "identity") +
-  labs(y = "",
-       x = "Percent") +
-  scale_x_continuous(limits = c(-100, 100)) +
+course %>% 
+  # Tricking ggplot2 to plot in two directions
+  ggplot(aes(x = if_else(str_detect(response, " agree"), perc, -perc), y = item, 
+             fill = color)) +
+  geom_col(color = "black") +
   scale_fill_identity("", labels = likert_scale, 
                       breaks = likert_palette, guide = "legend",
                       drop = FALSE) +
-  theme_bw() +
+  scale_x_continuous(labels = scales::label_percent(style_negative = "parens"),
+                     expand = expansion(add = 0.4),
+                     limits = c(-1, 1)) +
+  geom_vline(xintercept = 0, color = "gray50", linewidth = 1) +
+  labs(
+    title = "",
+    y = "",
+    x = "Percent",
+    fill = ""
+  ) +
+  theme_bw(base_size = 10) +
   theme(legend.position="bottom",
-        legend.box="horizontal",
-        legend.text = element_text(size = 8))
+        strip.background = element_rect(fill = NA),
+        strip.text = element_text(face = "bold"))
 ```
 
 
@@ -174,37 +187,35 @@ tools_summary <- sta631_evals %>%
                names_pattern = ".* \\[(.*)\\]") %>% 
   group_by(item, response) %>% 
   summarise(freq = n()) %>% 
-  mutate(perc = round(freq / sum(freq) * 100, 1))
+  mutate(perc = freq / sum(freq))
 
 tools <- tools_summary %>% 
   select(-freq) %>% 
   left_join(likert_info, by = c("response" = "scale"))
 
-tools_agree <- tools %>% 
-  filter(str_detect(response, " agree"))
-
-tools_disagree <- tools %>% 
-  filter(!str_detect(response, " agree"))
-
-ggplot() +
-  # Notice that I am plotting two different datasets, the "agree" dataset:
-  geom_bar(data = tools_agree,
-           aes(y = str_wrap(item, width = 40), x = perc, fill = color),
-           position = "stack", stat = "identity") +
-  # And the "disagree" dataset:
-  geom_bar(data = tools_disagree,
-           aes(y = str_wrap(item, width = 40), x = -perc, fill = color),
-           position = "stack", stat = "identity") +
-  labs(y = "",
-       x = "Percent") +
-  scale_x_continuous(limits = c(-100, 100)) +
+tools %>% 
+  # Tricking ggplot2 to plot in two directions
+  ggplot(aes(x = if_else(str_detect(response, " agree"), perc, -perc), 
+             y = str_wrap(item, width = 40), 
+             fill = color)) +
+  geom_col(color = "black") +
   scale_fill_identity("", labels = likert_scale, 
                       breaks = likert_palette, guide = "legend",
                       drop = FALSE) +
-  theme_bw() +
+  scale_x_continuous(labels = scales::label_percent(style_negative = "parens"),
+                     expand = expansion(add = 0.4),
+                     limits = c(-1, 1)) +
+  geom_vline(xintercept = 0, color = "gray50", linewidth = 1) +
+  labs(
+    title = "",
+    y = "",
+    x = "Percent",
+    fill = ""
+  ) +
+  theme_bw(base_size = 10) +
   theme(legend.position="bottom",
-        legend.box="horizontal",
-        legend.text = element_text(size = 8))
+        strip.background = element_rect(fill = NA),
+        strip.text = element_text(face = "bold"))
 ```
 
 ```{r instructor}
@@ -215,37 +226,35 @@ instructor_summary <- sta631_evals %>%
                names_pattern = ".* \\[(.*)\\]") %>% 
   group_by(item, response) %>% 
   summarise(freq = n()) %>% 
-  mutate(perc = round(freq / sum(freq) * 100, 1))
+  mutate(perc = freq / sum(freq))
 
 instructor <- instructor_summary %>% 
   select(-freq) %>% 
   left_join(likert_info, by = c("response" = "scale"))
 
-instructor_agree <- instructor %>% 
-  filter(str_detect(response, " agree"))
-
-instructor_disagree <- instructor %>% 
-  filter(!str_detect(response, " agree"))
-
-ggplot() +
-  # Notice that I am plotting two different datasets, the "agree" dataset:
-  geom_bar(data = instructor_agree,
-           aes(y = str_wrap(item, width = 40), x = perc, fill = color),
-           position = "stack", stat = "identity") +
-  # And the "disagree" dataset:
-  geom_bar(data = instructor_disagree,
-           aes(y = str_wrap(item, width = 40), x = -perc, fill = color),
-           position = "stack", stat = "identity") +
-  labs(y = "",
-       x = "Percent") +
-  scale_x_continuous(limits = c(-100, 100)) +
+instructor %>% 
+  # Tricking ggplot2 to plot in two directions
+  ggplot(aes(x = if_else(str_detect(response, " agree"), perc, -perc), 
+             y = str_wrap(item, width = 40), 
+             fill = color)) +
+  geom_col(color = "black") +
   scale_fill_identity("", labels = likert_scale, 
                       breaks = likert_palette, guide = "legend",
                       drop = FALSE) +
-  theme_bw() +
+  scale_x_continuous(labels = scales::label_percent(style_negative = "parens"),
+                     expand = expansion(add = 0.4),
+                     limits = c(-1, 1)) +
+  geom_vline(xintercept = 0, color = "gray50", linewidth = 1) +
+  labs(
+    title = "",
+    y = "",
+    x = "Percent",
+    fill = ""
+  ) +
+  theme_bw(base_size = 10) +
   theme(legend.position="bottom",
-        legend.box="horizontal",
-        legend.text = element_text(size = 8))
+        strip.background = element_rect(fill = NA),
+        strip.text = element_text(face = "bold"))
 ```
 
 ## Free response
