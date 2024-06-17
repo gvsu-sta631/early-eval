@@ -14,6 +14,10 @@ library(ggwordcloud)
 # However, the string here is from the Google Sheet's url - between the "/d/" and "/edit..."
 sta631_evals <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1tNzCYJLHRVUsadfUBO3YDz_n8zxIzv87G7_Ml92Knzg/edit?resourcekey#gid=1815260115")
 
+# Get submissions after start of this semester
+sta631_evals <- sta631_evals %>%
+  filter(Timestamp > "2024-05-31")
+
 # Create scales and color palettes
 effort_scale <- c("I have not attempted", "Less than 50%", "More than 50%, but not everything", "Essentially 100%")
 attempt_scale <- c("I have not attempted", "I have attempted")
@@ -39,25 +43,26 @@ likert_info <- tibble(
 )
 ```
 
-This report was generated with **19 responses**.
+This report was generated with **10 responses**.
 
 ``` r
-# Bar chart of sections
+# Bar chart of check-in
 sta631_evals %>% 
-  group_by(`What section are you in?`) %>% 
+  group_by(`Check-in [In general, how are you doing?]`) %>% 
   summarise(n = n()) %>% 
   mutate(perc = n / sum(n)) %>% 
   ggplot() +
-  geom_col(aes(y = `What section are you in?`,
+  geom_col(aes(y = `Check-in [In general, how are you doing?]`,
                x = perc)) +
   theme_bw() +
+  theme(axis.text.y = element_text(size = 16, vjust = 0.25)) +
   scale_x_continuous(labels = scales::label_percent()) +
-  labs(title = "What section are you in?",
+  labs(title = "In general, how are you doing?",
        y = "",
        x = "Percent")
 ```
 
-![](README_files/figure-gfm/sections-1.png)<!-- -->
+![](README_files/figure-gfm/check-in-1.png)<!-- -->
 
 ## Your Engagement
 
@@ -77,12 +82,13 @@ effort_summary <- sta631_evals %>%
 
 # Add color column
 effort <- effort_summary %>% 
-  left_join(effort_info, by = c("response" = "scale"))
+  left_join(effort_info, by = c("response" = "scale")) %>% 
+  mutate(color = fct_rev(factor(color, levels = effort_info %>% pull(color))))
 
 # PLOT!!!!
 effort %>% 
   ggplot() +
-  geom_bar(aes(y = str_wrap(item, width = 40), x = perc, fill = color),
+  geom_bar(aes(y = str_wrap(item, width = 30), x = perc, fill = color),
            position = "stack", stat = "identity") +
   labs(y = "",
        x = "Percent") +
@@ -94,7 +100,7 @@ effort %>%
   theme_bw() +
   theme(legend.position="bottom",
         legend.box="horizontal",
-        legend.text = element_text(size = 8))
+        legend.text = element_text(size = 5))
 ```
 
 ![](README_files/figure-gfm/effort-1.png)<!-- -->
@@ -115,7 +121,8 @@ help_summary <- sta631_evals %>%
 
 # Add color column
 help <- help_summary %>% 
-  left_join(attempt_info, by = c("response" = "scale"))
+  left_join(attempt_info, by = c("response" = "scale")) %>% 
+  mutate(color = fct_rev(factor(color, levels = attempt_info %>% pull(color))))
 
 # PLOT!!!!
 help %>% 
@@ -151,7 +158,8 @@ course_summary <- sta631_evals %>%
 
 course <- course_summary %>% 
   select(-freq) %>% 
-  left_join(likert_info, by = c("response" = "scale"))
+  left_join(likert_info, by = c("response" = "scale")) %>% 
+  mutate(color = fct_rev(factor(color, levels = likert_info %>% pull(color))))
 
 course %>% 
   # Tricking ggplot2 to plot in two directions
@@ -191,7 +199,8 @@ tools_summary <- sta631_evals %>%
 
 tools <- tools_summary %>% 
   select(-freq) %>% 
-  left_join(likert_info, by = c("response" = "scale"))
+  left_join(likert_info, by = c("response" = "scale")) %>% 
+  mutate(color = fct_rev(factor(color, levels = likert_info %>% pull(color))))
 
 tools %>% 
   # Tricking ggplot2 to plot in two directions
@@ -232,7 +241,8 @@ instructor_summary <- sta631_evals %>%
 
 instructor <- instructor_summary %>% 
   select(-freq) %>% 
-  left_join(likert_info, by = c("response" = "scale"))
+  left_join(likert_info, by = c("response" = "scale")) %>% 
+  mutate(color = fct_rev(factor(color, levels = likert_info %>% pull(color))))
 
 instructor %>% 
   # Tricking ggplot2 to plot in two directions
